@@ -13,6 +13,9 @@ export const ProductSlideShow: FC<Props> = ({ images }) => {
   return (
     <Slide
         easing="ease"
+        duration={7000}
+        indicators
+        pauseOnHover
     >
         {
             images.map( image =>  {
