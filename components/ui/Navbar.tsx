@@ -3,7 +3,7 @@ import { AppBar, Badge, Box, Button, IconButton, Input, InputAdornment, Link, To
 import NextLink from "next/link"
 import { useRouter } from "next/router"
 import { useContext, useState } from "react"
-import { UIContext } from '../../context';
+import { UIContext, CartContext } from '../../context';
 
 export const Navbar = () => {
 
@@ -11,6 +11,7 @@ export const Navbar = () => {
     const category =  asPath.split('/')[1] === 'category' ? asPath.split('/')[2] : ''
 
     const {toogleSideMenu} = useContext(UIContext)
+    const {numberOfItems} = useContext(CartContext)
 
     const [searchTerm, setSearchTerm] = useState('')
     const [isSearchVisible, setIsSearchVisible] = useState(false)
@@ -102,7 +103,7 @@ export const Navbar = () => {
                 <NextLink href='/cart' passHref>
                     <Link>
                         <IconButton>
-                            <Badge badgeContent={2} color="secondary" >
+                            <Badge badgeContent={numberOfItems > 9 ? '+9' : numberOfItems} color="secondary" >
                                 <ShoppingCartOutlined />
                             </Badge>
                         </IconButton>

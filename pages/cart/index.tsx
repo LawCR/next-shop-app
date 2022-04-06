@@ -3,8 +3,10 @@ import { Typography, Grid, Card, CardContent, Divider, Box, Button } from '@mui/
 import { CartList } from '../../components/cart/CartList';
 import { OrderSummary } from '../../components/cart/OrderSummary';
 
-const index = () => {
-  return (
+const CartPage = () => {
+    
+
+    return (
     <ShopLayout title='Carrito - 3' pageDescription='Carrito de compras de la tienda'>
         <Typography variant='h1' component='h1'>Carrito</Typography>
         <Grid container spacing={2}>
@@ -29,7 +31,7 @@ const index = () => {
             </Grid>
         </Grid>
     </ShopLayout>
-  )
+    )
 }
 
-export default index
+export default CartPage
