@@ -7,9 +7,11 @@ export const FullScreenLoading = () => {
         display='flex' 
         flexDirection='column'
         justifyContent='center' 
-        alignItems='center' height='calc(100vh - 200px)'
+        alignItems='center' 
+        height='calc(100vh - 200px)'
+        rowGap={2}
     >
-        <Typography sx={{mb: 3}} variant='h2' fontWeight={200} fontSize={20}>Cargando...</Typography>
+        <Typography variant='h2' fontWeight={200} fontSize={20}>Cargando</Typography>
         <CircularProgress thickness={2} />
     </Box>
   )

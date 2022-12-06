@@ -1,86 +1,192 @@
-import { Typography, Grid, Card, CardContent, Divider, Box, Button, Link, Chip } from '@mui/material';
-import NextLink from "next/link"
-import { CartList, OrderSummary } from "../../components/cart"
+import { getSession } from "next-auth/react";
+import { GetServerSideProps, NextPage } from 'next';
+import { PayPalButtons } from "@paypal/react-paypal-js";
+import { Typography, Grid, Card, CardContent, Divider, Box, Chip, CircularProgress } from '@mui/material';
+import { CartList, OrderAddress, OrderSummary } from "../../components/cart"
 import { ShopLayout } from "../../components/layouts"
-
 import {CreditCardOffOutlined, CreditScoreOutlined} from '@mui/icons-material'
+import { dbOrders } from "../../database";
+import { IOrder } from '../../interfaces';
+import { tesloApi } from "../../api";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
+interface Props {
+    order: IOrder
+}
 
-const OrderPage = () => {
-  return (
-    <ShopLayout title='Resumen de la orden 16135' pageDescription='Resumen de la orden'>
-        <Typography variant='h1' component='h1'>Orden: ABC123</Typography>
+type OrderResponseBody = {
+    id: string;
+    status: "COMPLETED" | "SAVED" | "APPROVED" | "VOIDED" | "PAYER_ACTION_REQUIRED";
+}
 
-        {/* <Chip 
-            sx={{my: 2}}
-            label='Pendiente de pago'
-            variant='outlined'
-            color='error'
-            icon={<CreditCardOffOutlined /> }
-        /> */}
-        <Chip 
-            sx={{my: 2}}
-            label='Orden ya fue Pagada'
-            variant='outlined'
-            color='success'
-            icon={<CreditScoreOutlined /> }
-        />
+const OrderPage: NextPage<Props> = ({order}) => {
 
-        <Grid container spacing={2}>
-            <Grid item xs={12} sm={7}>
-                <CartList />
+    const router = useRouter()
+    const { shippingAddress } = order
+    const [isPaying, setIsPaying] = useState(false)
+
+    // Otra opción en vez de recargar podriamos actualizar el estado de la orden
+    const onOrderCompleted = async( details: OrderResponseBody ) => {
+        if (details.status !== 'COMPLETED') return alert('Hubo un error, no se completo el pago en Paypal')
+        setIsPaying(true)
+        try {
+            const { data } = await tesloApi.post(`/orders/pay`, {
+                transactionId: details.id,
+                orderId: order._id
+            })
+
+            router.reload()
+        } catch (error) {
+            setIsPaying(false)
+            console.log(error)
+            alert('Hubo un error, no se completo el pago en Paypal')
+        }
+    }
+
+    return (
+        <ShopLayout title='Resumen de la orden' pageDescription='Resumen de la orden'>
+            <Typography variant='h1' component='h1'>Orden: {order._id}</Typography>
+
+            {
+                order.isPaid ? (
+                    <Chip 
+                        sx={{my: 2}}
+                        label='Orden ya fue Pagada'
+                        variant='outlined'
+                        color='success'
+                        icon={<CreditScoreOutlined /> }
+                    />
+                ) : (
+                    <Chip 
+                        sx={{my: 2}}
+                        label='Pendiente de pago'
+                        variant='outlined'
+                        color='error'
+                        icon={<CreditCardOffOutlined /> }
+                    /> 
+                )
+            }
+            
+            <Grid container spacing={2} className='fadeIn'>
+                <Grid item xs={12} sm={7}>
+                    <CartList products={order.orderItems} />
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                    <Card className='summary-card'>
+                        <CardContent>
+                            <Typography variant='h2' textAlign='center' fontWeight='bold'>
+                                Resumen ({order.numberOfItems} {order.numberOfItems > 1 ? 'productos' : 'producto'} )
+                            </Typography>
+
+                            <Divider sx={{my: 1}} />
+
+                            <Box display='flex' justifyContent='space-between'>
+                                <Typography variant='subtitle1'>Dirección de entrega</Typography>
+                            </Box>
+
+                            <Divider sx={{my: 1}}  />
+                            <OrderAddress shippingAddress={shippingAddress} />
+                            <Divider sx={{my: 1}}  />
+
+                            <OrderSummary order={order} />
+
+                            <Divider sx={{my: 1}}  />
+                            <Box sx={{mt: 3}} display='flex' flexDirection='column'>
+
+                                <Box 
+                                    display='flex' 
+                                    justifyContent='center' 
+                                    className="fadeIn"
+                                    sx={{display: isPaying ? 'flex' : 'none'}}
+                                >
+                                    <CircularProgress />
+                                </Box>
+                                <Box sx={{display: isPaying ? 'none' : 'flex', flex: 1}} flexDirection='column'>
+                                    {
+                                        order.isPaid ? (
+                                            <Chip 
+                                                sx={{my: 2}}
+                                                label='Orden ya fue Pagada'
+                                                variant='outlined'
+                                                color='success'
+                                                icon={<CreditScoreOutlined /> }
+                                            />
+                                        ) : (
+                                            <PayPalButtons
+                                                createOrder={(data, actions) => {
+                                                    return actions.order.create({
+                                                        purchase_units: [
+                                                            {
+                                                                amount: {
+                                                                    value: `${order.total}`,
+                                                                },
+                                                            },
+                                                        ],
+                                                    });
+                                                }}
+                                                onApprove={(data, actions) => {
+                                                    return actions.order!.capture().then((details) => {
+                                                        onOrderCompleted(details)
+                                                        // console.log({details})
+                                                        // const name = details.payer.name!.given_name;
+                                                        // alert(`Transaction completed by ${name}`);
+                                                    });
+                                                }}
+                                            />
+                                        )
+                                    }
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
             </Grid>
-            <Grid item xs={12} sm={5}>
-                <Card className='summary-card'>
-                    <CardContent>
-                        <Typography variant='h2'>Resumen (3 productos)</Typography>
-                        <Divider sx={{my: 1}}  />
+        </ShopLayout>
+    )
+}
 
-                        <Box display='flex' justifyContent='space-between'>
-                            <Typography variant='subtitle1'>Dirección de entrega</Typography>
-                            <NextLink href='/checkout/address' passHref>
-                                <Link underline='hover' color='secondary' sx={{alignSelf: 'center'}}>
-                                    Editar
-                                </Link>
-                            </NextLink>
-                        </Box>
+// You should use getServerSideProps when:
+// - Only if you need to pre-render a page whose data must be fetched at request time
 
-                        
-                        <Typography>Alvaro Calderon</Typography>
-                        <Typography>Av Central</Typography>
-                        <Typography>Lima, Villa el Salvador 152</Typography>
-                        <Typography>Perú</Typography>
-                        <Typography>+51 996633463</Typography>
-                        
-                        <Divider sx={{my: 1}}  />
+export const getServerSideProps: GetServerSideProps = async ({req, query}) => {
+    const { id = '' } = query
+    const session: any = await getSession({ req })
 
-                        <Box display='flex' justifyContent='end'>
-                            <NextLink href='/cart' passHref>
-                                <Link underline='hover' color='secondary'>
-                                    Editar
-                                </Link>
-                            </NextLink>
-                        </Box>
+    if (!session) {
+        return {
+            redirect: {
+                destination: `/auth/login?p=/orders/${id}`,
+                permanent: false,
+            }
+        }
+    }
 
-                        <OrderSummary />
+    const order = await dbOrders.getOrderByid(id.toString())
 
-                        <Box sx={{mt: 3}}>
-                            {/* TODO */}
-                            <h1>Pagar</h1>
-                            <Chip 
-                                sx={{my: 2}}
-                                label='Orden ya fue Pagada'
-                                variant='outlined'
-                                color='success'
-                                icon={<CreditScoreOutlined /> }
-                            />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
-        </Grid>
-    </ShopLayout>
-  )
+    if (!order) {
+        return {
+            redirect: {
+                destination: `/orders/history`,
+                permanent: false,
+            }
+        }
+    }
+
+    if (order.user !== session.user._id) {
+        return {
+            redirect: {
+                destination: `/orders/history`,
+                permanent: false,
+            }
+        }
+    }
+
+    return {
+        props: {
+            order
+        }
+    }
 }
 
 export default OrderPage

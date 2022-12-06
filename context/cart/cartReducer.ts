@@ -1,9 +1,9 @@
 import { CartState } from './';
-import { ICartProduct } from '../../interfaces';
+import { ICartProduct, ShippingAddress } from '../../interfaces';
 
 type CartActionType = 
 | {type: '[Cart] - LoadCart from cookies | storage', payload: ICartProduct[] }
-| {type: '[Cart] - Update products in cart', payload: ICartProduct[] }
+| {type: '[Cart] - Add or Update products in cart', payload: ICartProduct[] }
 | {type: '[Cart] - Change cart quantity', payload: ICartProduct }
 | {type: '[Cart] - Remove product in cart', payload: ICartProduct }
 | {type: '[Cart] - Update order summary', payload: {
@@ -12,16 +12,20 @@ type CartActionType =
     tax: number;
     total: number;
 }}
+| {type: '[Cart] - Load Address from cookies', payload: ShippingAddress }
+| {type: '[Cart] - Update Address', payload: ShippingAddress }
+| {type: '[Cart] - Order complete' }
 
 export const cartReducer = (state: CartState, action: CartActionType): CartState => {
     switch (action.type) {
         case '[Cart] - LoadCart from cookies | storage':
             return {
                 ...state,
+                isLoaded: true,
                 cart: [...action.payload]
             }
 
-        case '[Cart] - Update products in cart':
+        case '[Cart] - Add or Update products in cart':
             return {
                 ...state,
                 cart: [...action.payload]
@@ -48,11 +52,25 @@ export const cartReducer = (state: CartState, action: CartActionType): CartState
                 //     return true
                 // })
             }
-
         case '[Cart] - Update order summary':
             return {
                 ...state,
                 ...action.payload
+            }
+        case '[Cart] - Load Address from cookies':
+        case '[Cart] - Update Address':
+            return {
+                ...state,
+                shippingAddress: action.payload
+            }
+        case '[Cart] - Order complete':
+            return {
+                ...state,
+                cart: [],
+                numberOfItems: 0,
+                subTotal: 0,
+                tax: 0,
+                total: 0,
             }
 
         default:

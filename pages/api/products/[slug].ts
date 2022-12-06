@@ -28,5 +28,9 @@ const getProductBySlug = async(req: NextApiRequest, res: NextApiResponse<Data>) 
     if (!product) {
         return res.status(400).json({message: 'No hay producto: ' + slug})
     }
+
+    product.images = product.images.map((image: string) => {
+        return image.includes('http') ? image : `${process.env.HOST_NAME}products/${image}`
+    })
     return res.status(200).json(product)
 }

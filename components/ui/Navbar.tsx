@@ -54,8 +54,7 @@ export const Navbar = () => {
 
                 <Box flex={1} />
 
-                {/* Pantallas grandes */}
-                
+                {/* Search para pantallas grandes */}
                 {
                     isSearchVisible
                         ? (
@@ -90,16 +89,15 @@ export const Navbar = () => {
                             </IconButton>
                         )
                 }
-                
 
-                {/* Pantallas pequeñas */}
+                {/* Search para Pantallas pequeñas */}
                 <IconButton
-                    sx={{display: {sx: 'flex', sm: 'none'}}}
+                    sx={{display: {xs: 'flex', sm: 'none'}}}
                     onClick={toogleSideMenu}
                 >
                     <SearchOutlined />
                 </IconButton>
-
+                
                 <NextLink href='/cart' passHref>
                     <Link>
                         <IconButton>
@@ -112,7 +110,6 @@ export const Navbar = () => {
                 <Button onClick={toogleSideMenu}>
                     Menú
                 </Button>
-
             </Toolbar>
         </AppBar>
     )

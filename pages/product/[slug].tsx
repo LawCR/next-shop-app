@@ -37,17 +37,17 @@ const ProductPage: NextPage<Props> = ({product}) => {
     }))
   }
 
-  const updatedQuantity = (value: number) => {
+  const updatedQuantity = (newQuantity: number) => {
     setTempCartProduct( currentProduct => ({
       ...currentProduct,
-      quantity: value, 
+      quantity: newQuantity, 
     }))
   }
 
   const onAddProduct = () => {
     if(!tempCartProduct.size) return
 
-    // TODO: llamar la accion del context para agregar al carrito
+    // Llamar la accion del context para agregar al carrito
     addProductToCart(tempCartProduct)
     router.push('/cart')
   }
@@ -110,7 +110,7 @@ const ProductPage: NextPage<Props> = ({product}) => {
   )
 }
 
-// * El SSR - no usar
+// * El SSR - no usar en lo posible
 // export const getServerSideProps: GetServerSideProps = async ({params}) => {
 
 //   const {slug = ''} = params as {slug: string}
@@ -136,7 +136,6 @@ const ProductPage: NextPage<Props> = ({product}) => {
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
   const slugs = await dbProducts.getAllProductSlugs()
-
   return {
     paths: slugs.map(({slug}) => ({
       params: {slug}

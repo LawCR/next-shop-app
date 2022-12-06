@@ -2,7 +2,6 @@ import { db } from "./"
 import Product from '../models/Product';
 import { IProduct } from "../interfaces";
 
-
 export const getProductBySlug = async(slug: string): Promise<IProduct | null> => {
     await db.connect()
 
@@ -13,6 +12,12 @@ export const getProductBySlug = async(slug: string): Promise<IProduct | null> =>
     if (!product) {
         return null
     }
+
+    //* Procesamiento de las imagenes cuando lo subamos al server (Solo si se tiene imagenes en filesystem)
+    product.images = product.images.map((image: string) => {
+        return image.includes('http') ? image : `${process.env.HOST_NAME}products/${image}`
+    })
+
     // Para hacer un parseo del id en forma de object
     return JSON.parse( JSON.stringify( product ) )
 }
@@ -43,7 +48,16 @@ export const getProductsByTerm = async(term: string): Promise<IProduct[]> => {
 
     await db.disconnect()
 
-    return products
+    //* Procesamiento de las imagenes cuando lo subamos al server
+    const updatedProducts = products.map(product => {
+        product.images = product.images.map((image: string) => {
+            return image.includes('http') ? image : `${process.env.HOST_NAME}products/${image}`
+        })
+
+        return product
+    })
+
+    return updatedProducts
 }
 
 export const getAllProducts = async(): Promise<IProduct[]> => {
@@ -53,5 +67,14 @@ export const getAllProducts = async(): Promise<IProduct[]> => {
 
     await db.disconnect()
 
-    return JSON.parse( JSON.stringify( products ) ) 
+    //* Procesamiento de las imagenes cuando lo subamos al server
+    const updatedProducts = products.map(product => {
+        product.images = product.images.map((image: string) => {
+            return image.includes('http') ? image : `${process.env.HOST_NAME}products/${image}`
+        })
+
+        return product
+    })
+
+    return JSON.parse( JSON.stringify( updatedProducts ) ) 
 }

@@ -22,7 +22,7 @@ const SearchPage: NextPage<Props> = ({ products, foundProducts, query, cantidadP
             foundProducts
                 ? (<Typography variant='h2' sx={{mb: 1}}>
                         Mostrando {`${cantidadProducts}`} resultados para: 
-                        <Typography variant='h2' component='span' color="secondary" textTransform='capitalize' sx={{ml: 1}}>
+                        <Typography variant='h2' sx={{ml: 1}} component='span' color="secondary" textTransform='capitalize'>
                             { query }
                         </Typography>
                     </Typography>
@@ -60,13 +60,12 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     }
 
     let products = await dbProducts.getProductsByTerm(query)
-
     
-    // Y si no hay productos
+    //* Si no hay productos
     const cantidadProducts = products.length
     const foundProducts = cantidadProducts > 0
 
-    // TODO: Retornamos otros productos
+    //* Retornamos otros productos
     if (!foundProducts) {
         // products = await dbProducts.getAllProducts()
         products = await dbProducts.getProductsByTerm('shirt')
