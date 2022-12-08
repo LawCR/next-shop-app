@@ -7,7 +7,7 @@ import { ShopLayout } from "../../components/layouts"
 import {CreditCardOffOutlined, CreditScoreOutlined} from '@mui/icons-material'
 import { dbOrders } from "../../database";
 import { IOrder } from '../../interfaces';
-import { tesloApi } from "../../api";
+import { tesloApi } from "../../axiosApi";
 import { useRouter } from "next/router";
 import { useState } from "react";
 

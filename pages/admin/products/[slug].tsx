@@ -7,7 +7,7 @@ import { ArrowBackIosOutlined, DriveFileRenameOutline, SaveOutlined, UploadOutli
 import { dbProducts } from '../../../database';
 import { Box, Button, capitalize, Card, CardActions, CardMedia, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormGroup, FormLabel, Grid, ListItem, Paper, Radio, RadioGroup, TextField } from '@mui/material';
 import { useForm } from 'react-hook-form';
-import { tesloApi } from '../../../api';
+import { tesloApi } from '../../../axiosApi';
 import { Product } from '../../../models';
 
 
@@ -46,7 +46,7 @@ const ProductAdminPage:FC<Props> = ({ product }) => {
 
     useEffect(() => {
         const subscription = watch((value, {name, type}) => {
-            console.log({value, name, type})
+            // console.log({value, name, type})
             if (name === 'title') {
                 const newSlug = value.title?.trim()
                     .replaceAll(' ', '_')
@@ -405,7 +405,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
         // crear un producto
         const tempProduct = JSON.parse(JSON.stringify( new Product() ));
         delete tempProduct._id;
-        tempProduct.images = ['img1.jpg', 'img2.jpg'];
+        tempProduct.images = [];
         product = tempProduct;
     } else {
         product = await dbProducts.getProductBySlug(slug.toString());
